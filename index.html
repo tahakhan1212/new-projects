@@ -71,11 +71,11 @@
             background: none;
             /* let the moon canvas be clearly visible */
             pointer-events: none;
-            z-index: -1;
+            z-index: -3;
         }
 
         .container {
-            max-width: 1400px;
+            max-width: 1700px;
             margin: 0 auto;
             padding: 20px;
         }
@@ -97,6 +97,22 @@
             position: relative;
             display: inline-block;
             min-height: 120px;
+            background: linear-gradient(90deg, var(--text), var(--accent1), var(--text));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            background-size: 200% 100%;
+            animation: shimmer 6s linear infinite;
+        }
+
+        @keyframes shimmer {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            100% {
+                background-position: 200% 50%;
+            }
         }
 
         /* Preserve height when empty */
@@ -106,9 +122,10 @@
 
         /* Theme toggle button */
         .theme-toggle {
-            position: absolute;
-            top: 16px;
-            right: 16px;
+            position: fixed;
+            /* keep out of content flow */
+            top: calc(12px + env(safe-area-inset-top));
+            right: calc(12px + env(safe-area-inset-right));
             display: inline-flex;
             align-items: center;
             gap: 8px;
@@ -117,18 +134,31 @@
             border: 1px solid var(--card-border);
             color: var(--text);
             border-radius: 999px;
-            padding: 8px 14px;
-            font-size: 0.9rem;
+            padding: 10px 16px;
+            font-size: 0.95rem;
             cursor: pointer;
-            transition: transform 0.2s ease, background 0.2s ease;
+            transition: transform 160ms ease, background 160ms ease, box-shadow 160ms ease, color 160ms ease;
+            z-index: 50;
+            touch-action: manipulation;
         }
 
         .theme-toggle:hover {
-            transform: translateY(-2px);
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+        }
+
+        .theme-toggle:active {
+            transform: translateY(0) scale(0.98);
+        }
+
+        .theme-toggle:focus-visible {
+            outline: 2px solid var(--accent1);
+            outline-offset: 2px;
         }
 
         .theme-toggle i {
             font-size: 1rem;
+            transition: transform 240ms ease;
         }
 
         .animated-heading .letter {
@@ -136,28 +166,7 @@
             opacity: 0;
         }
 
-        .typing-cursor {
-            display: inline-block;
-            width: 3px;
-            height: 70px;
-            background-color: var(--accent1);
-            margin-left: 5px;
-            vertical-align: top;
-            margin-top: 20px;
-            animation: blink 1s infinite;
-        }
 
-        @keyframes blink {
-
-            0%,
-            100% {
-                opacity: 1;
-            }
-
-            50% {
-                opacity: 0;
-            }
-        }
 
         .subtitle {
             color: var(--muted);
@@ -177,8 +186,9 @@
         /* Bento grid layout */
         .bento-grid {
             display: grid;
-            grid-template-columns: repeat(12, 1fr);
+            grid-template-columns: repeat(12, minmax(0, 1fr));
             grid-auto-rows: minmax(200px, auto);
+            grid-auto-flow: dense;
             gap: 20px;
             margin-bottom: 60px;
         }
@@ -190,12 +200,13 @@
             overflow: hidden;
             position: relative;
             opacity: 0;
-            transform: translateY(40px);
-            transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            transform: translateY(40px) translateZ(0);
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3),
                 0 0 0 1px rgba(255, 255, 255, 0.05);
             border: 1px solid var(--card-border);
-
+            will-change: opacity, transform;
+            backface-visibility: hidden;
+            -webkit-font-smoothing: antialiased;
         }
 
         .bento-item::before {
@@ -213,6 +224,104 @@
 
         .bento-item:hover::before {
             opacity: 1;
+        }
+
+        /* Gradient border ring for cards (glassmorphism) */
+        .bento-item::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 20px;
+            padding: 1px;
+            /* border thickness */
+            background: linear-gradient(135deg, rgba(120, 119, 198, 0.5), rgba(255, 119, 198, 0.5), rgba(120, 119, 198, 0.3));
+            -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+            opacity: 0.6;
+        }
+
+        /* Card content refinements */
+        .project-content {
+            padding: 28px;
+        }
+
+        .project-number {
+            color: var(--muted);
+            letter-spacing: 0.08em;
+        }
+
+        .project-title {
+            letter-spacing: -0.02em;
+        }
+
+        .project-overview {
+            color: var(--muted);
+        }
+
+        /* Tag chips upgrade */
+        .tag {
+            position: relative;
+            background: linear-gradient(135deg, rgba(120, 119, 198, 0.15), rgba(255, 119, 198, 0.12));
+            color: var(--text);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+        }
+
+        [data-theme="light"] .tag {
+            background: linear-gradient(135deg, rgba(251, 191, 36, 0.18), rgba(217, 119, 6, 0.12));
+            border-color: rgba(251, 191, 36, 0.25);
+        }
+
+        /* View project button upgrade */
+        .view-project {
+            background: linear-gradient(135deg, rgba(120, 119, 198, 0.15), rgba(255, 119, 198, 0.12));
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 999px;
+            padding: 10px 16px;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            white-space: nowrap;
+            /* keep on one line */
+            line-height: 1;
+            font-weight: 600;
+        }
+
+        [data-theme="light"] .view-project {
+            background: linear-gradient(135deg, rgba(251, 191, 36, 0.20), rgba(217, 119, 6, 0.12));
+            border-color: rgba(251, 191, 36, 0.28);
+        }
+
+        .view-project:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+        }
+
+        .view-project i {
+            transition: transform 220ms ease;
+            width: 1.2em;
+            text-align: center;
+        }
+
+        .view-project:hover i {
+            transform: translateX(6px);
+        }
+
+        /* Micro-interaction: subtle tilt and lift on hover for cards (desktop only) */
+        @media (hover: hover) and (pointer: fine) {
+            .bento-item {
+                transition: transform 280ms ease, box-shadow 280ms ease;
+            }
+
+            .bento-item:hover {
+                transform: translateY(-8px) scale(1.02) rotateX(0.5deg) rotateY(-0.5deg);
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4),
+                    0 0 0 1px rgba(255, 255, 255, 0.1),
+                    0 0 20px rgba(120, 119, 198, 0.2);
+            }
         }
 
         .bento-item:nth-child(1) {
@@ -521,7 +630,8 @@
             left: 0;
             width: 100%;
             height: 100%;
-            z-index: -2;
+            z-index: -1;
+            /* ensure canvas is above particles */
             pointer-events: none;
         }
 
@@ -561,7 +671,8 @@
             width: 100%;
             height: 100%;
             pointer-events: none;
-            z-index: -1;
+            z-index: -2;
+            /* keep particles behind canvas */
         }
 
         .particle {
@@ -713,6 +824,16 @@
                 min-height: 90px;
             }
 
+            /* ensure fixed theme toggle doesn't overlap heading */
+            .header {
+                padding-top: 70px;
+            }
+
+            .theme-toggle {
+                padding: 8px 12px;
+                font-size: 0.85rem;
+            }
+
             .typing-cursor {
                 height: 50px;
             }
@@ -757,6 +878,7 @@
             .project-tags {
                 flex-wrap: wrap;
             }
+
         }
 
         @media (max-width: 480px) {
@@ -782,6 +904,17 @@
             .animated-heading {
                 font-size: 2rem;
                 min-height: 70px;
+            }
+
+            /* extra headroom for fixed toggle on very small devices */
+            .header {
+                padding-top: 78px;
+            }
+
+            .theme-toggle {
+                padding: 7px 10px;
+                gap: 6px;
+                font-size: 0.8rem;
             }
 
             .typing-cursor {
@@ -873,6 +1006,147 @@
             opacity: 1;
             transform: translateY(0);
         }
+
+        /* Smooth transitions – global defaults */
+        :root {
+            --ease-ui: cubic-bezier(0.2, 0.8, 0.2, 1);
+            --ease-soft: cubic-bezier(0.22, 1, 0.36, 1);
+            --tr-fast: 180ms;
+            --tr-med: 280ms;
+            --tr-slow: 520ms;
+        }
+
+        /* Theme-related color/background transitions */
+        :root,
+        body,
+        .bento-item,
+        .tag,
+        .overview-section,
+        .view-project,
+        .header,
+        .subtitle,
+        .project-title,
+        .project-overview,
+        .footer,
+        .project-tags,
+        .project-meta {
+            transition: background-color var(--tr-med) var(--ease-ui), color var(--tr-med) var(--ease-ui), border-color var(--tr-med) var(--ease-ui), box-shadow var(--tr-med) var(--ease-ui);
+        }
+
+        /* Interactive elements */
+        a,
+        button,
+        .view-project,
+        .theme-toggle,
+        .tag {
+            transition: transform var(--tr-fast) var(--ease-soft), opacity var(--tr-fast) var(--ease-soft), background-color var(--tr-med) var(--ease-ui), color var(--tr-med) var(--ease-ui), box-shadow var(--tr-med) var(--ease-ui), border-color var(--tr-med) var(--ease-ui);
+            will-change: transform, opacity;
+        }
+
+        /* Images or media inside cards (if any) */
+        .bento-item img,
+        .bento-item video,
+        .bento-item canvas {
+            transition: transform var(--tr-slow) var(--ease-soft), filter var(--tr-med) var(--ease-ui), opacity var(--tr-med) var(--ease-ui);
+            will-change: transform, filter, opacity;
+        }
+
+        /* Typography refinements */
+        .project-title,
+        .project-overview,
+        .project-number,
+        .subtitle {
+            transition: opacity var(--tr-med) var(--ease-ui), transform var(--tr-med) var(--ease-ui), color var(--tr-med) var(--ease-ui);
+            will-change: opacity, transform;
+        }
+
+        /* Hover micro-interactions */
+        a:hover,
+        button:hover,
+        .view-project:hover,
+        .tag:hover {
+            transform: translateZ(0) translateY(-1px);
+        }
+
+        /* Focus visibility for keyboard */
+        :focus-visible {
+            outline: 2px solid var(--accent1);
+            outline-offset: 2px;
+            transition: outline-color var(--tr-fast) linear;
+        }
+
+        /* Comprehensive smooth transitions for all elements */
+        * {
+            transition: transform var(--tr-fast) var(--ease-soft), opacity var(--tr-fast) var(--ease-soft);
+        }
+
+        /* Specific element transitions */
+        .container,
+        .header,
+        .bento-grid,
+        .overview-section,
+        .footer {
+            transition: opacity var(--tr-slow) var(--ease-ui), transform var(--tr-slow) var(--ease-ui), background-color var(--tr-med) var(--ease-ui);
+        }
+
+        /* Enhanced card transitions */
+        .bento-item {
+            transition: opacity var(--tr-slow) var(--ease-soft), transform var(--tr-slow) var(--ease-soft), background-color var(--tr-med) var(--ease-ui), box-shadow var(--tr-med) var(--ease-ui), border-color var(--tr-med) var(--ease-ui) !important;
+            transform: translateY(40px) translateZ(0);
+            backface-visibility: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .bento-item.active {
+            opacity: 1;
+            transform: translateY(0) translateZ(0);
+        }
+
+        /* Smooth hover states */
+        .bento-item:hover {
+            transform: translateY(-8px) scale(1.02) translateZ(0) !important;
+            transition: transform var(--tr-med) var(--ease-soft), box-shadow var(--tr-med) var(--ease-soft) !important;
+        }
+
+        /* Button and interactive element smoothness */
+        .theme-toggle,
+        .view-project,
+        .tag,
+        a,
+        button {
+            transition: all var(--tr-med) var(--ease-soft) !important;
+            transform: translateZ(0);
+        }
+
+        .theme-toggle:hover,
+        .view-project:hover,
+        .tag:hover,
+        a:hover,
+        button:hover {
+            transform: translateY(-2px) translateZ(0);
+        }
+
+        /* Typography smooth reveals */
+        .animated-heading,
+        .project-title,
+        .project-overview,
+        .project-number,
+        .subtitle {
+            transition: opacity var(--tr-slow) var(--ease-ui), transform var(--tr-slow) var(--ease-ui), color var(--tr-med) var(--ease-ui) !important;
+        }
+
+        /* Reduced motion accessibility */
+        @media (prefers-reduced-motion: reduce) {
+
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+                scroll-behavior: auto !important;
+            }
+        }
     </style>
 </head>
 
@@ -944,8 +1218,8 @@
                             <span class="tag">CSS</span>
                             <span class="tag">JavaScript</span>
                         </div>
-                        <a href="https://tahakhan1212.github.io/store/" target="_blank" class="view-project">View Project <i
-                                class="fas fa-arrow-right"></i></a>
+                        <a href="https://tahakhan1212.github.io/store/" target="_blank" class="view-project">View
+                            Project <i class="fas fa-arrow-right"></i></a>
                     </div>
                 </div>
             </div>
@@ -955,16 +1229,17 @@
                 <div class="project-content">
                     <div>
                         <div class="project-number">03</div>
-                        <h3 class="project-title">Smart Home Hub</h3>
-                        <p class="project-overview">Centralized control system for IoT devices with voice control and
-                            automation scenarios.</p>
+                        <h3 class="project-title">FurEver Care</h3>
+                        <p class="project-overview">The Pet Management System is a dynamic PHP-MySQL web app that
+                            efficiently manages pet data and activities through a user-friendly interface.</p>
                     </div>
                     <div class="project-meta">
                         <div class="project-tags">
                             <span class="tag">php</span>
                             <span class="tag">MySQL</span>
                         </div>
-                        <a href="#" target="_blank" class="view-project">View Project <i class="fas fa-arrow-right"></i></a>
+                        <a href="https://furevercare.free.nf/index.php" target="_blank" class="view-project">View
+                            Project <i class="fas fa-arrow-right"></i></a>
                     </div>
                 </div>
             </div>
@@ -1013,8 +1288,8 @@
                             <span class="tag">CSS</span>
                             <span class="tag">JavaScript</span>
                         </div>
-                        <a href="https://tahakhan1212.github.io/projects/Smart%20Travel/Smart%20Travel/home.html" target="_blank"
-                            class="view-project">View Project <i class="fas fa-arrow-right"></i></a>
+                        <a href="https://tahakhan1212.github.io/projects/Smart%20Travel/Smart%20Travel/home.html"
+                            target="_blank" class="view-project">View Project <i class="fas fa-arrow-right"></i></a>
                     </div>
                 </div>
             </div>
@@ -1034,7 +1309,8 @@
                             <span class="tag">HTML</span>
                             <span class="tag">CSS</span>
                         </div>
-                        <a href="https://tahakhan1212.github.io/projects/microsoft.html" target="_blank" class="view-project">View
+                        <a href="https://tahakhan1212.github.io/projects/microsoft.html" target="_blank"
+                            class="view-project">View
                             Project <i class="fas fa-arrow-right"></i></a>
                     </div>
                 </div>
@@ -1057,7 +1333,8 @@
                             <span class="tag">HTML</span>
                             <span class="tag">CSS</span>
                         </div>
-                        <a href="https://tahakhan1212.github.io/projects/bento-layout.html" target="_blank" class="view-project">View
+                        <a href="https://tahakhan1212.github.io/projects/bento-layout.html" target="_blank"
+                            class="view-project">View
                             Project <i class="fas fa-arrow-right"></i></a>
                     </div>
                 </div>
@@ -1102,7 +1379,20 @@
             let bigMoon = null;
             let bigSun = null;
             let currentTheme = 'dark';
+            let ripples = [];
+            let orbitAnim = null; // {next, duration, elapsed, cx, cy, R, angle0, done}
+            // New: galaxy/nebula seeds and a small solar system
+            let nebulaSeeds = [];
+            let planets = [];
+            // New: interactive constellations and comets
+            let enableConstellations = true;
+            let comets = [];
             let mouse = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
+            // Adaptive performance state
+            let spawnScale = 1; // scales down spawn probabilities under load
+            let perfLow = false; // true when lowering quality
+            let fpsEMA = 60; // exponential moving average of FPS
+            let planetOverrideCount = null; // allow fewer planets under load
             // Hoisted custom cursor reference and updater (must exist before applyTheme)
             var customCursor = document.getElementById('customCursor');
             function updateCursorTheme() {
@@ -1122,6 +1412,223 @@
                 }
             }
 
+            // =========================
+            // Constellations around cursor
+            // =========================
+            function drawConstellations() {
+                if (!enableConstellations || !stars.length) return;
+                const mx = mouse.x * dpr;
+                const my = mouse.y * dpr;
+                const base = Math.min(w, h);
+                const radius = (window.innerWidth < 480 ? 0.12 : 0.18) * base;
+                const near = [];
+                for (let i = 0; i < stars.length; i++) {
+                    const s = stars[i];
+                    const dx = s.x - mx;
+                    const dy = s.y - my;
+                    const dist = Math.hypot(dx, dy);
+                    if (dist < radius) near.push({ i, s, dist });
+                    if (near.length > 60) break; // cap for performance
+                }
+                if (near.length < 2) return;
+                // Sort by proximity and only link a subset
+                near.sort((a, b) => a.dist - b.dist);
+                const maxLinks = Math.min(near.length, 24);
+                ctx.save();
+                ctx.lineWidth = Math.max(1 * dpr, base * 0.001);
+                for (let i = 0; i < maxLinks; i++) {
+                    for (let j = i + 1; j < Math.min(maxLinks, i + 6); j++) {
+                        const a = near[i].s;
+                        const b = near[j].s;
+                        const d = Math.hypot(a.x - b.x, a.y - b.y);
+                        const thresh = radius * 0.35;
+                        if (d < thresh) {
+                            const t = 1 - d / thresh;
+                            const alpha = (currentTheme === 'dark' ? 0.28 : 0.22) * t;
+                            ctx.strokeStyle = currentTheme === 'dark'
+                                ? `rgba(200,210,255,${alpha})`
+                                : `rgba(255,190,60,${alpha})`;
+                            ctx.beginPath();
+                            ctx.moveTo(a.x, a.y);
+                            ctx.lineTo(b.x, b.y);
+                            ctx.stroke();
+                        }
+                    }
+                }
+                ctx.restore();
+            }
+
+            // =========================
+            // Comets with glowing tails
+            // =========================
+            function spawnComet() {
+                const side = Math.random() < 0.5 ? 'left' : 'top';
+                const startX = side === 'left' ? -80 * dpr : rand(0.1 * w, 0.4 * w);
+                const startY = side === 'left' ? rand(0.2 * h, 0.6 * h) : -80 * dpr;
+                const speed = rand(300, 500) * dpr / 60; // px per frame at ~60fps
+                const angle = side === 'left' ? rand(-0.3, 0.2) : rand(0.2, 0.6);
+                comets.push({
+                    x: startX,
+                    y: startY,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    life: rand(2.5, 4.5),
+                    age: 0,
+                    tail: []
+                });
+            }
+
+            function drawComets(dt) {
+                for (let i = comets.length - 1; i >= 0; i--) {
+                    const c = comets[i];
+                    c.age += dt;
+                    c.x += c.vx * dt;
+                    c.y += c.vy * dt;
+                    // keep tail positions
+                    c.tail.unshift({ x: c.x, y: c.y });
+                    if (c.tail.length > 60) c.tail.pop();
+
+                    // draw tail as fading segments
+                    for (let t = 0; t < c.tail.length - 1; t++) {
+                        const p1 = c.tail[t];
+                        const p2 = c.tail[t + 1];
+                        const f = 1 - t / c.tail.length;
+                        const width = Math.max(1 * dpr, f * 4 * dpr);
+                        const color = currentTheme === 'dark'
+                            ? `rgba(220,235,255,${0.15 * f})`
+                            : `rgba(255,210,80,${0.14 * f})`;
+                        ctx.strokeStyle = color;
+                        ctx.lineWidth = width;
+                        ctx.beginPath();
+                        ctx.moveTo(p1.x, p1.y);
+                        ctx.lineTo(p2.x, p2.y);
+                        ctx.stroke();
+                    }
+
+                    // comet head
+                    const headGrad = ctx.createRadialGradient(c.x, c.y, 0, c.x, c.y, 10 * dpr);
+                    if (currentTheme === 'dark') {
+                        headGrad.addColorStop(0, 'rgba(255,255,255,0.9)');
+                        headGrad.addColorStop(1, 'rgba(200,220,255,0)');
+                    } else {
+                        headGrad.addColorStop(0, 'rgba(255,230,120,0.9)');
+                        headGrad.addColorStop(1, 'rgba(255,180,60,0)');
+                    }
+                    ctx.beginPath();
+                    ctx.fillStyle = headGrad;
+                    ctx.arc(c.x, c.y, 10 * dpr, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // cleanup
+                    const outOfBounds = c.x < -100 || c.x > w + 100 || c.y < -100 || c.y > h + 100;
+                    if (c.age > c.life || outOfBounds) {
+                        comets.splice(i, 1);
+                    }
+                }
+            }
+
+            // =========================
+            // Galaxy/Nebula background
+            // =========================
+            function initNebula() {
+                const isSmall = window.innerWidth < 480;
+                const count = isSmall ? 4 : 7;
+                nebulaSeeds = new Array(count).fill(0).map(() => ({
+                    x: Math.random() * w,
+                    y: Math.random() * h,
+                    r: Math.min(w, h) * (0.25 + Math.random() * 0.35),
+                    phase: Math.random() * Math.PI * 2,
+                    speed: 0.0006 + Math.random() * 0.0008,
+                }));
+            }
+
+            function drawNebula(dt) {
+                if (!nebulaSeeds.length) return;
+                ctx.save();
+                ctx.globalCompositeOperation = 'lighter';
+                for (const n of nebulaSeeds) {
+                    n.phase += n.speed;
+                    const pulsate = 0.9 + Math.sin(n.phase) * 0.1;
+                    const rr = n.r * pulsate;
+                    const grad = ctx.createRadialGradient(n.x, n.y, rr * 0.1, n.x, n.y, rr);
+                    if (currentTheme === 'dark') {
+                        grad.addColorStop(0.0, 'rgba(160,130,255,0.12)');
+                        grad.addColorStop(0.35, 'rgba(120,100,220,0.10)');
+                        grad.addColorStop(0.7, 'rgba(80,60,180,0.06)');
+                        grad.addColorStop(1.0, 'rgba(40,30,120,0.0)');
+                    } else {
+                        grad.addColorStop(0.0, 'rgba(255,230,120,0.10)');
+                        grad.addColorStop(0.4, 'rgba(255,200,80,0.08)');
+                        grad.addColorStop(0.8, 'rgba(255,160,40,0.05)');
+                        grad.addColorStop(1.0, 'rgba(255,140,0,0.0)');
+                    }
+                    ctx.beginPath();
+                    ctx.fillStyle = grad;
+                    ctx.arc(n.x, n.y, rr, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                ctx.restore();
+            }
+
+            // =========================
+            // Mini Solar System (planets)
+            // =========================
+            function initPlanets() {
+                const base = Math.min(w, h);
+                const isSmall = window.innerWidth < 480;
+                const defaultCount = isSmall ? 3 : 5;
+                const planetCount = planetOverrideCount ?? defaultCount;
+                const centerX = w * 0.22; // left side cluster so big Sun/Moon stays on right
+                const centerY = h * 0.72;
+                planets = new Array(planetCount).fill(0).map((_, i) => {
+                    const orbitR = base * (0.06 + i * 0.05);
+                    const size = base * (0.012 + i * 0.006);
+                    const speed = (0.4 + i * 0.22) * (window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 1);
+                    return {
+                        cx: centerX,
+                        cy: centerY,
+                        orbitR,
+                        size,
+                        angle: Math.random() * Math.PI * 2,
+                        speed,
+                    };
+                });
+            }
+
+            function drawPlanets(dt) {
+                if (!planets.length) return;
+                ctx.save();
+                // Orbits
+                ctx.strokeStyle = currentTheme === 'dark' ? 'rgba(180,190,255,0.12)' : 'rgba(255,180,0,0.12)';
+                ctx.lineWidth = 1 * dpr;
+                for (const p of planets) {
+                    ctx.beginPath();
+                    ctx.arc(p.cx, p.cy, p.orbitR, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+                // Planets
+                for (const p of planets) {
+                    p.angle += p.speed * dt; // radians per second
+                    const x = p.cx + Math.cos(p.angle) * p.orbitR;
+                    const y = p.cy + Math.sin(p.angle) * p.orbitR;
+                    const g = ctx.createRadialGradient(x - p.size * 0.4, y - p.size * 0.4, p.size * 0.1, x, y, p.size);
+                    if (currentTheme === 'dark') {
+                        g.addColorStop(0, 'rgba(220,230,255,0.95)');
+                        g.addColorStop(0.6, 'rgba(160,170,220,0.5)');
+                        g.addColorStop(1, 'rgba(80,90,140,0.15)');
+                    } else {
+                        g.addColorStop(0, 'rgba(255,240,170,0.95)');
+                        g.addColorStop(0.6, 'rgba(255,200,100,0.55)');
+                        g.addColorStop(1, 'rgba(255,160,40,0.18)');
+                    }
+                    ctx.beginPath();
+                    ctx.fillStyle = g;
+                    ctx.arc(x, y, p.size, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                ctx.restore();
+            }
+
             // THEME: init + toggle with persistence
             const root = document.documentElement;
             const themeToggle = document.getElementById('themeToggle');
@@ -1130,12 +1637,16 @@
 
             function applyTheme(theme) {
                 if (theme === 'light') {
+                    // Ensure Sun exists before switching
+                    if (!bigSun) initBigSun();
                     root.setAttribute('data-theme', 'light');
                     themeIcon.classList.remove('fa-moon');
                     themeIcon.classList.add('fa-sun');
                     themeLabel.textContent = 'Light';
                     currentTheme = 'light';
                 } else {
+                    // Ensure Moon exists before switching
+                    if (!bigMoon) initBigMoon();
                     root.removeAttribute('data-theme');
                     themeIcon.classList.remove('fa-sun');
                     themeIcon.classList.add('fa-moon');
@@ -1149,56 +1660,129 @@
                 if (!bigMoon || currentTheme === 'light') return;
 
                 bigMoon.glow += 0.02;
-                const parX = (mouse.x / window.innerWidth - 0.5) * (bigMoon.r * 0.15) * dpr;
-                const parY = (mouse.y / window.innerHeight - 0.5) * (bigMoon.r * 0.15) * dpr;
-                const x = bigMoon.cx + parX;
-                const y = bigMoon.cy + parY;
+                // Base center may be overridden by orbit animation
+                let baseX = bigMoon.cx;
+                let baseY = bigMoon.cy;
+                const vwMoon = window.innerWidth;
+                const parFactorMoon = (vwMoon < 480) ? 0.06 : 0.15;
+                const parX = (mouse.x / window.innerWidth - 0.5) * (bigMoon.r * parFactorMoon) * dpr;
+                const parY = (mouse.y / window.innerHeight - 0.5) * (bigMoon.r * parFactorMoon) * dpr;
+                const x = baseX + parX;
+                const y = baseY + parY;
 
-                // Outer glow
-                const glowIntensity = 0.3 + Math.sin(bigMoon.glow) * 0.1;
-                const glowGrad = ctx.createRadialGradient(x, y, bigMoon.r * 0.8, x, y, bigMoon.r * 1.5);
-                glowGrad.addColorStop(0, `rgba(200,220,255,${glowIntensity * 0.3})`);
-                glowGrad.addColorStop(1, 'rgba(200,220,255,0)');
+                // Atmospheric glow with multiple layers
+                const glowIntensity = 0.4 + Math.sin(bigMoon.glow) * 0.15;
+
+                // Outer atmospheric glow
+                const outerGlow = ctx.createRadialGradient(x, y, bigMoon.r * 0.9, x, y, bigMoon.r * 2.2);
+                outerGlow.addColorStop(0, `rgba(180,200,255,${glowIntensity * 0.15})`);
+                outerGlow.addColorStop(0.5, `rgba(200,220,255,${glowIntensity * 0.08})`);
+                outerGlow.addColorStop(1, 'rgba(220,235,255,0)');
                 ctx.beginPath();
-                ctx.fillStyle = glowGrad;
-                ctx.arc(x, y, bigMoon.r * 1.5, 0, Math.PI * 2);
+                ctx.fillStyle = outerGlow;
+                ctx.arc(x, y, bigMoon.r * 2.2, 0, Math.PI * 2);
                 ctx.fill();
 
-                // Main moon body with enhanced gradient
-                const g = ctx.createRadialGradient(x - bigMoon.r * 0.25, y - bigMoon.r * 0.25, bigMoon.r * 0.1, x, y, bigMoon.r);
-                g.addColorStop(0, 'rgba(255,255,255,0.98)');
-                g.addColorStop(0.3, 'rgba(240,245,255,0.85)');
-                g.addColorStop(0.7, 'rgba(200,210,230,0.6)');
-                g.addColorStop(1, 'rgba(150,160,180,0.2)');
+                // Inner glow
+                const innerGlow = ctx.createRadialGradient(x, y, bigMoon.r * 0.7, x, y, bigMoon.r * 1.3);
+                innerGlow.addColorStop(0, `rgba(220,235,255,${glowIntensity * 0.25})`);
+                innerGlow.addColorStop(1, 'rgba(200,220,255,0)');
                 ctx.beginPath();
-                ctx.fillStyle = g;
+                ctx.fillStyle = innerGlow;
+                ctx.arc(x, y, bigMoon.r * 1.3, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Main moon body with realistic lunar surface gradient
+                const moonGrad = ctx.createRadialGradient(x - bigMoon.r * 0.3, y - bigMoon.r * 0.3, bigMoon.r * 0.1, x, y, bigMoon.r);
+                moonGrad.addColorStop(0, 'rgba(255,255,255,1)');
+                moonGrad.addColorStop(0.15, 'rgba(250,250,255,0.95)');
+                moonGrad.addColorStop(0.35, 'rgba(235,240,250,0.85)');
+                moonGrad.addColorStop(0.6, 'rgba(210,220,235,0.7)');
+                moonGrad.addColorStop(0.8, 'rgba(180,190,210,0.5)');
+                moonGrad.addColorStop(1, 'rgba(140,150,170,0.3)');
+                ctx.beginPath();
+                ctx.fillStyle = moonGrad;
                 ctx.arc(x, y, bigMoon.r, 0, Math.PI * 2);
                 ctx.fill();
 
-                // Enhanced craters with depth
-                const crater = (ox, oy, rr, a, depth = 0.15) => {
+                // Surface texture overlay with noise-like pattern
+                ctx.save();
+                ctx.globalCompositeOperation = 'multiply';
+                ctx.globalAlpha = 0.15;
+                for (let i = 0; i < 80; i++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const dist = Math.random() * bigMoon.r * 0.9;
+                    const spotX = x + Math.cos(angle) * dist;
+                    const spotY = y + Math.sin(angle) * dist;
+                    const spotSize = Math.random() * 3 + 1;
+                    ctx.beginPath();
+                    ctx.fillStyle = `rgba(180,180,200,${Math.random() * 0.3 + 0.2})`;
+                    ctx.arc(spotX, spotY, spotSize * dpr, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                ctx.restore();
+
+                // Enhanced craters with realistic depth and lighting
+                const crater = (ox, oy, rr, a, depth = 0.2, rimBrightness = 0.3) => {
                     ctx.save();
                     ctx.translate(x + ox, y + oy);
                     ctx.rotate(a);
 
-                    // Crater shadow
-                    const craterGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, rr * 1.2);
-                    craterGrad.addColorStop(0, `rgba(120,130,150,${depth + 0.1})`);
+                    // Crater rim highlight
+                    const rimGrad = ctx.createRadialGradient(0, 0, rr * 0.8, 0, 0, rr * 1.4);
+                    rimGrad.addColorStop(0, 'rgba(255,255,255,0)');
+                    rimGrad.addColorStop(0.7, `rgba(255,255,255,${rimBrightness})`);
+                    rimGrad.addColorStop(0.85, `rgba(240,245,255,${rimBrightness * 0.7})`);
+                    rimGrad.addColorStop(1, 'rgba(220,230,245,0)');
+                    ctx.beginPath();
+                    ctx.fillStyle = rimGrad;
+                    ctx.arc(0, 0, rr * 1.4, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // Crater shadow/depth
+                    const craterGrad = ctx.createRadialGradient(-rr * 0.2, -rr * 0.2, 0, 0, 0, rr * 1.1);
+                    craterGrad.addColorStop(0, `rgba(80,90,110,${depth + 0.2})`);
+                    craterGrad.addColorStop(0.4, `rgba(120,130,150,${depth + 0.1})`);
                     craterGrad.addColorStop(0.7, `rgba(160,170,190,${depth})`);
-                    craterGrad.addColorStop(1, 'rgba(180,190,210,0)');
+                    craterGrad.addColorStop(1, 'rgba(200,210,225,0)');
 
                     ctx.beginPath();
                     ctx.fillStyle = craterGrad;
-                    ctx.ellipse(0, 0, rr * 1.2, rr, 0, 0, Math.PI * 2);
+                    ctx.ellipse(0, 0, rr * 1.1, rr * 0.9, 0, 0, Math.PI * 2);
                     ctx.fill();
+
+                    // Inner crater floor
+                    const floorGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, rr * 0.6);
+                    floorGrad.addColorStop(0, `rgba(60,70,90,${depth * 0.8})`);
+                    floorGrad.addColorStop(1, 'rgba(100,110,130,0)');
+                    ctx.beginPath();
+                    ctx.fillStyle = floorGrad;
+                    ctx.arc(0, 0, rr * 0.6, 0, Math.PI * 2);
+                    ctx.fill();
+
                     ctx.restore();
                 };
 
-                crater(-bigMoon.r * 0.35, -bigMoon.r * 0.15, bigMoon.r * 0.14, 0.2, 0.2);
-                crater(bigMoon.r * 0.1, -bigMoon.r * 0.25, bigMoon.r * 0.09, -0.4, 0.15);
-                crater(bigMoon.r * 0.28, bigMoon.r * 0.1, bigMoon.r * 0.12, 0.6, 0.18);
-                crater(-bigMoon.r * 0.1, bigMoon.r * 0.35, bigMoon.r * 0.08, 1.2, 0.12);
-                crater(bigMoon.r * 0.45, -bigMoon.r * 0.05, bigMoon.r * 0.06, -0.8, 0.1);
+                // Major craters with varied sizes and depths
+                crater(-bigMoon.r * 0.35, -bigMoon.r * 0.15, bigMoon.r * 0.16, 0.2, 0.25, 0.4);
+                crater(bigMoon.r * 0.1, -bigMoon.r * 0.25, bigMoon.r * 0.11, -0.4, 0.2, 0.3);
+                crater(bigMoon.r * 0.28, bigMoon.r * 0.1, bigMoon.r * 0.14, 0.6, 0.22, 0.35);
+                crater(-bigMoon.r * 0.1, bigMoon.r * 0.35, bigMoon.r * 0.09, 1.2, 0.18, 0.25);
+                crater(bigMoon.r * 0.45, -bigMoon.r * 0.05, bigMoon.r * 0.07, -0.8, 0.15, 0.2);
+                crater(-bigMoon.r * 0.25, bigMoon.r * 0.2, bigMoon.r * 0.05, 0.8, 0.12, 0.15);
+                crater(bigMoon.r * 0.35, bigMoon.r * 0.3, bigMoon.r * 0.04, -1.1, 0.1, 0.12);
+
+                // Mare (dark plains) regions
+                ctx.save();
+                ctx.globalAlpha = 0.3;
+                const mareGrad = ctx.createRadialGradient(x - bigMoon.r * 0.2, y + bigMoon.r * 0.1, bigMoon.r * 0.1, x, y + bigMoon.r * 0.2, bigMoon.r * 0.4);
+                mareGrad.addColorStop(0, 'rgba(100,110,130,0.6)');
+                mareGrad.addColorStop(1, 'rgba(140,150,170,0)');
+                ctx.beginPath();
+                ctx.fillStyle = mareGrad;
+                ctx.arc(x - bigMoon.r * 0.1, y + bigMoon.r * 0.15, bigMoon.r * 0.35, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
             }
 
             function drawBigSun() {
@@ -1207,62 +1791,192 @@
                 bigSun.rotation += 0.005;
                 bigSun.pulsePhase += 0.03;
 
-                const parX = (mouse.x / window.innerWidth - 0.5) * (bigSun.r * 0.1) * dpr;
-                const parY = (mouse.y / window.innerHeight - 0.5) * (bigSun.r * 0.1) * dpr;
-                const x = bigSun.cx + parX;
-                const y = bigSun.cy + parY;
+                // Base center (updateOrbit manipulates cx/cy during orbit)
+                let baseX = bigSun.cx;
+                let baseY = bigSun.cy;
+                const vwSun = window.innerWidth;
+                const parFactorSun = (vwSun < 480) ? 0.05 : 0.1;
+                const parX = (mouse.x / window.innerWidth - 0.5) * (bigSun.r * parFactorSun) * dpr;
+                const parY = (mouse.y / window.innerHeight - 0.5) * (bigSun.r * parFactorSun) * dpr;
+                const x = baseX + parX;
+                const y = baseY + parY;
 
-                const pulse = 1 + Math.sin(bigSun.pulsePhase) * 0.05;
+                const pulse = 1 + Math.sin(bigSun.pulsePhase) * 0.08;
                 const currentR = bigSun.r * pulse;
 
-                // Outer corona
-                const coronaGrad = ctx.createRadialGradient(x, y, currentR * 0.7, x, y, currentR * 2);
-                coronaGrad.addColorStop(0, 'rgba(255,215,0,0.4)');
-                coronaGrad.addColorStop(0.5, 'rgba(255,165,0,0.2)');
-                coronaGrad.addColorStop(1, 'rgba(255,140,0,0)');
+                // Extended corona with multiple layers
+                const outerCorona = ctx.createRadialGradient(x, y, currentR * 0.8, x, y, currentR * 3);
+                outerCorona.addColorStop(0, 'rgba(255,180,0,0.3)');
+                outerCorona.addColorStop(0.3, 'rgba(255,200,50,0.15)');
+                outerCorona.addColorStop(0.6, 'rgba(255,220,100,0.08)');
+                outerCorona.addColorStop(1, 'rgba(255,240,150,0)');
                 ctx.beginPath();
-                ctx.fillStyle = coronaGrad;
-                ctx.arc(x, y, currentR * 2, 0, Math.PI * 2);
+                ctx.fillStyle = outerCorona;
+                ctx.arc(x, y, currentR * 3, 0, Math.PI * 2);
                 ctx.fill();
 
-                // Sun rays
+                // Inner corona
+                const innerCorona = ctx.createRadialGradient(x, y, currentR * 0.6, x, y, currentR * 1.8);
+                innerCorona.addColorStop(0, 'rgba(255,215,0,0.5)');
+                innerCorona.addColorStop(0.5, 'rgba(255,180,0,0.25)');
+                innerCorona.addColorStop(1, 'rgba(255,160,0,0)');
+                ctx.beginPath();
+                ctx.fillStyle = innerCorona;
+                ctx.arc(x, y, currentR * 1.8, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Dynamic solar flares/prominences
+                ctx.save();
+                ctx.translate(x, y);
+                ctx.rotate(bigSun.rotation * 0.5);
+                for (let i = 0; i < 8; i++) {
+                    const angle = (i / 8) * Math.PI * 2;
+                    const flareLength = currentR * (1.5 + Math.sin(bigSun.pulsePhase + i) * 0.3);
+                    const flareWidth = 8 * dpr * (0.5 + Math.sin(bigSun.pulsePhase * 1.5 + i) * 0.3);
+
+                    const flareGrad = ctx.createLinearGradient(
+                        Math.cos(angle) * currentR * 1.1, Math.sin(angle) * currentR * 1.1,
+                        Math.cos(angle) * flareLength, Math.sin(angle) * flareLength
+                    );
+                    flareGrad.addColorStop(0, 'rgba(255,100,0,0.8)');
+                    flareGrad.addColorStop(0.5, 'rgba(255,150,0,0.4)');
+                    flareGrad.addColorStop(1, 'rgba(255,200,50,0)');
+
+                    ctx.strokeStyle = flareGrad;
+                    ctx.lineWidth = flareWidth;
+                    ctx.lineCap = 'round';
+                    ctx.beginPath();
+                    ctx.moveTo(Math.cos(angle) * currentR * 1.1, Math.sin(angle) * currentR * 1.1);
+                    ctx.lineTo(Math.cos(angle) * flareLength, Math.sin(angle) * flareLength);
+                    ctx.stroke();
+                }
+                ctx.restore();
+
+                // Rotating sun rays
                 ctx.save();
                 ctx.translate(x, y);
                 ctx.rotate(bigSun.rotation);
-                ctx.strokeStyle = 'rgba(255,215,0,0.6)';
-                ctx.lineWidth = 3 * dpr;
 
-                for (let i = 0; i < 16; i++) {
-                    const angle = (i / 16) * Math.PI * 2;
-                    const rayLength = currentR * 1.4;
+                // Primary rays
+                for (let i = 0; i < 24; i++) {
+                    const angle = (i / 24) * Math.PI * 2;
+                    const rayLength = currentR * (1.3 + Math.sin(bigSun.pulsePhase + i * 0.5) * 0.2);
+                    const rayWidth = (4 + Math.sin(bigSun.pulsePhase * 2 + i) * 2) * dpr;
+
+                    const rayGrad = ctx.createLinearGradient(
+                        Math.cos(angle) * currentR * 1.05, Math.sin(angle) * currentR * 1.05,
+                        Math.cos(angle) * rayLength, Math.sin(angle) * rayLength
+                    );
+                    rayGrad.addColorStop(0, 'rgba(255,215,0,0.9)');
+                    rayGrad.addColorStop(0.7, 'rgba(255,180,0,0.5)');
+                    rayGrad.addColorStop(1, 'rgba(255,160,0,0)');
+
+                    ctx.strokeStyle = rayGrad;
+                    ctx.lineWidth = rayWidth;
+                    ctx.lineCap = 'round';
                     ctx.beginPath();
-                    ctx.moveTo(Math.cos(angle) * currentR * 1.1, Math.sin(angle) * currentR * 1.1);
+                    ctx.moveTo(Math.cos(angle) * currentR * 1.05, Math.sin(angle) * currentR * 1.05);
                     ctx.lineTo(Math.cos(angle) * rayLength, Math.sin(angle) * rayLength);
                     ctx.stroke();
                 }
                 ctx.restore();
 
-                // Main sun body
-                const sunGrad = ctx.createRadialGradient(x - currentR * 0.3, y - currentR * 0.3, currentR * 0.1, x, y, currentR);
-                sunGrad.addColorStop(0, 'rgba(255,255,200,1)');
-                sunGrad.addColorStop(0.4, 'rgba(255,215,0,0.95)');
-                sunGrad.addColorStop(0.8, 'rgba(255,165,0,0.8)');
-                sunGrad.addColorStop(1, 'rgba(255,140,0,0.4)');
+                // Main sun body with realistic solar surface
+                const sunGrad = ctx.createRadialGradient(x - currentR * 0.25, y - currentR * 0.25, currentR * 0.1, x, y, currentR);
+                sunGrad.addColorStop(0, 'rgba(255,255,220,1)');
+                sunGrad.addColorStop(0.2, 'rgba(255,245,180,0.98)');
+                sunGrad.addColorStop(0.4, 'rgba(255,215,100,0.95)');
+                sunGrad.addColorStop(0.6, 'rgba(255,190,60,0.9)');
+                sunGrad.addColorStop(0.8, 'rgba(255,165,30,0.8)');
+                sunGrad.addColorStop(1, 'rgba(255,140,0,0.6)');
 
                 ctx.beginPath();
                 ctx.fillStyle = sunGrad;
                 ctx.arc(x, y, currentR, 0, Math.PI * 2);
                 ctx.fill();
-
-                // Sun spots
-                ctx.fillStyle = 'rgba(255,140,0,0.3)';
+                // Visibility rim to ensure the Sun stands out on bright backgrounds
                 ctx.beginPath();
-                ctx.arc(x - currentR * 0.2, y + currentR * 0.15, currentR * 0.08, 0, Math.PI * 2);
-                ctx.fill();
+                ctx.lineWidth = Math.max(1.5 * dpr, currentR * 0.02);
+                ctx.strokeStyle = 'rgba(150, 80, 0, 0.35)';
+                ctx.arc(x, y, currentR * 1.01, 0, Math.PI * 2);
+                ctx.stroke();
 
-                ctx.beginPath();
-                ctx.arc(x + currentR * 0.3, y - currentR * 0.1, currentR * 0.06, 0, Math.PI * 2);
-                ctx.fill();
+                // Solar granulation texture
+                ctx.save();
+                ctx.globalCompositeOperation = 'multiply';
+                ctx.globalAlpha = 0.2;
+                for (let i = 0; i < 120; i++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const dist = Math.random() * currentR * 0.9;
+                    const grainX = x + Math.cos(angle) * dist;
+                    const grainY = y + Math.sin(angle) * dist;
+                    const grainSize = (Math.random() * 4 + 2) * dpr;
+                    const intensity = Math.random() * 0.4 + 0.3;
+
+                    ctx.beginPath();
+                    ctx.fillStyle = `rgba(255,150,0,${intensity})`;
+                    ctx.arc(grainX, grainY, grainSize, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                ctx.restore();
+
+                // Solar convection cells (larger patterns)
+                ctx.save();
+                ctx.globalAlpha = 0.15;
+                for (let i = 0; i < 12; i++) {
+                    const angle = (i / 12) * Math.PI * 2 + bigSun.rotation * 0.1;
+                    const dist = (Math.random() * 0.6 + 0.2) * currentR;
+                    const cellX = x + Math.cos(angle) * dist;
+                    const cellY = y + Math.sin(angle) * dist;
+                    const cellSize = (Math.random() * 15 + 10) * dpr;
+
+                    const cellGrad = ctx.createRadialGradient(cellX, cellY, 0, cellX, cellY, cellSize);
+                    cellGrad.addColorStop(0, 'rgba(255,200,50,0.6)');
+                    cellGrad.addColorStop(0.7, 'rgba(255,180,30,0.3)');
+                    cellGrad.addColorStop(1, 'rgba(255,160,0,0)');
+
+                    ctx.beginPath();
+                    ctx.fillStyle = cellGrad;
+                    ctx.arc(cellX, cellY, cellSize, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                ctx.restore();
+
+                // Sunspots with realistic magnetic field patterns
+                const sunspot = (ox, oy, size, intensity = 0.4) => {
+                    ctx.save();
+                    const spotX = x + ox;
+                    const spotY = y + oy;
+
+                    // Penumbra (outer region)
+                    const penumbraGrad = ctx.createRadialGradient(spotX, spotY, 0, spotX, spotY, size * 1.8);
+                    penumbraGrad.addColorStop(0, `rgba(150,80,0,${intensity * 0.8})`);
+                    penumbraGrad.addColorStop(0.6, `rgba(200,120,20,${intensity * 0.4})`);
+                    penumbraGrad.addColorStop(1, 'rgba(255,180,50,0)');
+                    ctx.beginPath();
+                    ctx.fillStyle = penumbraGrad;
+                    ctx.arc(spotX, spotY, size * 1.8, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // Umbra (dark center)
+                    const umbraGrad = ctx.createRadialGradient(spotX, spotY, 0, spotX, spotY, size);
+                    umbraGrad.addColorStop(0, `rgba(80,40,0,${intensity})`);
+                    umbraGrad.addColorStop(0.8, `rgba(120,60,10,${intensity * 0.7})`);
+                    umbraGrad.addColorStop(1, `rgba(180,100,20,${intensity * 0.3})`);
+                    ctx.beginPath();
+                    ctx.fillStyle = umbraGrad;
+                    ctx.arc(spotX, spotY, size, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    ctx.restore();
+                };
+
+                // Multiple sunspots of varying sizes
+                sunspot(-currentR * 0.25, currentR * 0.15, currentR * 0.08, 0.5);
+                sunspot(currentR * 0.35, -currentR * 0.1, currentR * 0.06, 0.4);
+                sunspot(-currentR * 0.1, -currentR * 0.3, currentR * 0.04, 0.3);
+                sunspot(currentR * 0.15, currentR * 0.25, currentR * 0.05, 0.35);
+                sunspot(-currentR * 0.4, -currentR * 0.05, currentR * 0.03, 0.25);
             }
 
             // Shooting stars
@@ -1305,20 +2019,129 @@
                 }
             }
 
+            // Theme toggle ripple effect (360° ring expanding from Moon/Sun)
+            function triggerRipple(theme) {
+                const src = theme === 'light' ? bigSun : bigMoon;
+                if (!src) return;
+                // Center at the current celestial body position (without parallax)
+                const cx = src.cx;
+                const cy = src.cy;
+                ripples.push({
+                    x: cx,
+                    y: cy,
+                    r: 0,
+                    maxR: Math.hypot(w, h),
+                    baseWidth: 6 * dpr,
+                    color: theme === 'light' ? '255,215,0' : '220,235,255',
+                    speed: 700 * dpr // pixels per second
+                });
+            }
+
+            function drawRipples(dt) {
+                for (let i = ripples.length - 1; i >= 0; i--) {
+                    const rp = ripples[i];
+                    rp.r += rp.speed * dt;
+                    const t = rp.r / rp.maxR; // 0 -> 1
+                    const alpha = Math.max(0, 1 - t);
+                    const width = Math.max(1 * dpr, (1 - t) * rp.baseWidth);
+                    ctx.strokeStyle = `rgba(${rp.color},${alpha * 0.6})`;
+                    ctx.lineWidth = width;
+                    ctx.beginPath();
+                    ctx.arc(rp.x, rp.y, rp.r, 0, Math.PI * 2);
+                    ctx.stroke();
+                    if (rp.r >= rp.maxR) ripples.splice(i, 1);
+                }
+            }
+
             const savedTheme = localStorage.getItem('theme');
             applyTheme(savedTheme || 'dark');
 
+            // Start orbit animation for the main Moon/Sun (on canvas)
+            function startOrbit(nextTheme, duration = 1600) {
+                // Reduced motion: skip animation
+                if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                    applyTheme(nextTheme);
+                    localStorage.setItem('theme', nextTheme);
+                    triggerRipple(nextTheme);
+                    return;
+                }
+
+                const targetIsSun = currentTheme === 'light';
+                const body = targetIsSun ? bigSun : bigMoon;
+                if (!body) {
+                    applyTheme(nextTheme);
+                    localStorage.setItem('theme', nextTheme);
+                    triggerRipple(nextTheme);
+                    return;
+                }
+
+                const centerX = w / 2;
+                const centerY = h / 2;
+                const R = Math.hypot(body.cx - centerX, body.cy - centerY) || Math.min(w, h) * 0.35;
+                const angle0 = Math.atan2(body.cy - centerY, body.cx - centerX);
+
+                orbitAnim = {
+                    nextTheme,
+                    duration,
+                    start: performance.now(),
+                    centerX,
+                    centerY,
+                    R,
+                    angle0,
+                    target: targetIsSun ? 'sun' : 'moon',
+                    origX: body.cx,
+                    origY: body.cy
+                };
+                themeToggle.disabled = true;
+            }
+
+            // Update orbit each frame; when complete, switch theme and end
+            function updateOrbit(now) {
+                if (!orbitAnim) return;
+                const { start, duration, centerX, centerY, R, angle0, target, nextTheme, origX, origY } = orbitAnim;
+                const t = Math.min(1, (now - start) / duration);
+                const et = 0.5 - Math.cos(Math.PI * t) / 2; // easeInOutSine
+                const theta = angle0 + et * Math.PI * 2;
+                const x = centerX + R * Math.cos(theta);
+                const y = centerY + R * Math.sin(theta);
+
+                if (target === 'sun' && bigSun) {
+                    bigSun.cx = x;
+                    bigSun.cy = y;
+                } else if (target === 'moon' && bigMoon) {
+                    bigMoon.cx = x;
+                    bigMoon.cy = y;
+                }
+
+                if (t >= 1) {
+                    // Restore original position
+                    if (target === 'sun' && bigSun) {
+                        bigSun.cx = origX;
+                        bigSun.cy = origY;
+                    } else if (target === 'moon' && bigMoon) {
+                        bigMoon.cx = origX;
+                        bigMoon.cy = origY;
+                    }
+                    // Switch theme and ripple
+                    applyTheme(nextTheme);
+                    localStorage.setItem('theme', nextTheme);
+                    triggerRipple(nextTheme);
+                    orbitAnim = null;
+                    themeToggle.disabled = false;
+                }
+            }
+
             themeToggle.addEventListener('click', () => {
+                if (themeToggle.disabled || orbitAnim) return;
                 const isLight = root.getAttribute('data-theme') === 'light';
                 const next = isLight ? 'dark' : 'light';
-                applyTheme(next);
-                localStorage.setItem('theme', next);
+                startOrbit(next);
             });
 
             // CANVAS FUNCTIONS
             function resize() {
                 // Cap DPR for performance
-                dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+                dpr = Math.min(window.devicePixelRatio || 1, perfLow ? 1.0 : 1.5);
                 w = canvas.width = Math.floor(window.innerWidth * dpr);
                 h = canvas.height = Math.floor(window.innerHeight * dpr);
                 canvas.style.width = window.innerWidth + 'px';
@@ -1327,9 +2150,12 @@
                 initMoons();
                 initBigMoon();
                 initBigSun();
+                initNebula();
+                initPlanets();
             }
 
             function rand(min, max) { return Math.random() * (max - min) + min; }
+            function clamp(val, minVal, maxVal) { return Math.max(minVal, Math.min(maxVal, val)); }
 
             function initStars() {
                 const base = Math.min(160, Math.floor(window.innerWidth / 8));
@@ -1358,10 +2184,16 @@
             }
 
             function initBigMoon() {
-                const baseR = Math.min(w, h) * 0.18;
+                const vw = window.innerWidth;
+                const vh = window.innerHeight;
+                const isSmall = vw < 576 || vh < 576;
+                const baseR = Math.min(w, h) * (isSmall ? 0.14 : 0.18);
+                const margin = Math.min(w, h) * (isSmall ? 0.08 : 0.1);
+                const cx = clamp(w * 0.75, margin + baseR, w - margin - baseR);
+                const cy = clamp(h * 0.28, margin + baseR, h - margin - baseR);
                 bigMoon = {
-                    cx: w * 0.78,
-                    cy: h * 0.28,
+                    cx,
+                    cy,
                     r: baseR,
                     phase: 0,
                     glow: 0
@@ -1369,10 +2201,16 @@
             }
 
             function initBigSun() {
-                const baseR = Math.min(w, h) * 0.16;
+                const vw = window.innerWidth;
+                const vh = window.innerHeight;
+                const isSmall = vw < 576 || vh < 576;
+                const baseR = Math.min(w, h) * (isSmall ? 0.12 : 0.16);
+                const margin = Math.min(w, h) * (isSmall ? 0.08 : 0.1);
+                const cx = clamp(w * 0.75, margin + baseR, w - margin - baseR);
+                const cy = clamp(h * 0.28, margin + baseR, h - margin - baseR);
                 bigSun = {
-                    cx: w * 0.78,
-                    cy: h * 0.28,
+                    cx,
+                    cy,
                     r: baseR,
                     rotation: 0,
                     pulsePhase: 0
@@ -1444,20 +2282,57 @@
 
             // Animation loop (restored)
             let lastFrameTime = performance.now();
+            let lastPerfCheck = performance.now();
             function loop(now = performance.now()) {
                 const dt = Math.min((now - lastFrameTime) / 1000, 0.033);
                 lastFrameTime = now;
+                // FPS tracking (EMA)
+                const instFPS = dt > 0 ? 1 / dt : 60;
+                fpsEMA = fpsEMA * 0.92 + instFPS * 0.08;
                 ctx.clearRect(0, 0, w, h);
+                // Background nebula first for depth
+                drawNebula(dt);
+                updateOrbit(now);
                 drawStars();
+                // Interactive constellation lines around cursor
+                drawConstellations();
+                // Mini solar system next (behind big bodies)
+                drawPlanets(dt);
                 if (currentTheme === 'dark') {
                     drawBigMoon();
                 } else {
                     drawBigSun();
                 }
+                // Comets with glowing tails
+                drawComets(dt);
                 drawShootingStars(dt);
+                drawRipples(dt);
                 drawMoons();
                 // Lower spawn rate for smoother performance
-                if (Math.random() < (window.innerWidth < 640 ? 0.002 : 0.004)) spawnShootingStar();
+                if (Math.random() < ((window.innerWidth < 640 ? 0.002 : 0.004) * spawnScale)) spawnShootingStar();
+                // Rare comet spawns
+                if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                    if (Math.random() < ((window.innerWidth < 640 ? 0.0004 : 0.0008) * spawnScale)) spawnComet();
+                }
+                // Adaptive performance check every ~2s
+                if (now - lastPerfCheck > 2000) {
+                    lastPerfCheck = now;
+                    if (fpsEMA < 42 && !perfLow) {
+                        // enter low perf mode
+                        perfLow = true;
+                        spawnScale = 0.5;
+                        enableConstellations = false;
+                        planetOverrideCount = 3; // fewer planets
+                        resize(); // re-init with lower DPR
+                    } else if (fpsEMA > 55 && perfLow) {
+                        // restore
+                        perfLow = false;
+                        spawnScale = 1;
+                        enableConstellations = true;
+                        planetOverrideCount = null;
+                        resize(); // re-init with higher DPR
+                    }
+                }
                 requestAnimationFrame(loop);
             }
 
@@ -1468,6 +2343,14 @@
                 // Move custom cursor
                 if (customCursor) {
                     customCursor.style.transform = `translate(${e.clientX}px, ${e.clientY}px)`;
+                }
+            });
+            // Keyboard shortcuts: C to toggle constellations, K to spawn a comet
+            window.addEventListener('keydown', (e) => {
+                if (e.key === 'c' || e.key === 'C') {
+                    enableConstellations = !enableConstellations;
+                } else if (e.key === 'k' || e.key === 'K') {
+                    if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) spawnComet();
                 }
             });
             resize();
@@ -1482,7 +2365,7 @@
             const fullText = "MY PROJECTS";
             let charIndex = 0;
             let isDeleting = false;
-            let typingSpeed =100;
+            let typingSpeed = 100;
             let pauseTime = 2000;
 
             function type() {
@@ -1512,8 +2395,9 @@
 
             // Enhanced Intersection Observer for better performance
             const observerOptions = {
-                threshold: 0.1,
-                rootMargin: '0px 0px -50px 0px'
+                threshold: 0.05,
+                // start activating 40% before the bottom of viewport for ultra-smooth entry
+                rootMargin: '0px 0px -40% 0px'
             };
 
             // Activate header with better timing
@@ -1525,10 +2409,10 @@
             const bentoObserver = new IntersectionObserver((entries) => {
                 entries.forEach((entry, index) => {
                     if (entry.isIntersecting) {
+                        // lighter stagger to reduce perceived jank
                         setTimeout(() => {
-                            entry.target.style.opacity = '1';
-                            entry.target.style.transform = 'translateY(0)';
-                        }, index * 100);
+                            entry.target.classList.add('active');
+                        }, Math.min(index * 60, 360));
                         bentoObserver.unobserve(entry.target);
                     }
                 });
